@@ -1,0 +1,1080 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CatBills — Painel Financeiro Premium</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Tailwind Config para cores personalizadas -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            purple: '#8B5CF6',      // Roxo vibrante
+                            purpleDark: '#6D28D9',  // Roxo escuro
+                            black: '#09090B',       // Preto profundo
+                            grayDark: '#18181B',    // Cinza grafite escuro
+                            grayMedium: '#27272A',  // Cinza médio
+                            grayLight: '#3F3F46',   // Cinza claro
+                            slateText: '#A1A1AA'    // Cinza de apoio
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Lucide Icons para ícones modernos -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #09090B;
+        }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #18181B;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #3F3F46;
+            border-radius: 3px;
+        }
+
+            ::-webkit-scrollbar-thumb:hover {
+                background: #8B5CF6;
+            }
+    </style>
+</head>
+<body class="text-white min-h-screen flex flex-col md:flex-row">
+
+    <!-- SIDEBAR (Menu Lateral) -->
+    <aside class="w-full md:w-64 bg-brand-grayDark border-b md:border-b-0 md:border-r border-brand-grayMedium flex flex-col justify-between p-6">
+        <div>
+            <!-- Logo -->
+            <div class="flex items-center gap-3 mb-8">
+                <div class="bg-brand-purple p-2.5 rounded-xl shadow-lg shadow-brand-purple/20">
+                    <i data-lucide="cat" class="w-6 h-6 text-brand-black"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold tracking-tight bg-gradient-to-r from-white via-slate-100 to-brand-purple bg-clip-text text-transparent">CatBills</h1>
+                    <p class="text-[10px] text-brand-slateText uppercase tracking-widest font-semibold">Gestão de Despesas</p>
+                </div>
+            </div>
+
+            <!-- Navegação -->
+            <nav class="space-y-1.5">
+                <a href="#" onclick="switchTab('dashboard')" id="nav-dashboard" class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 bg-brand-purple text-brand-black font-semibold shadow-md shadow-brand-purple/10">
+                    <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
+                    Visão Geral
+                </a>
+                <a href="#" onclick="switchTab('despesas')" id="nav-despesas" class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-brand-slateText hover:text-white hover:bg-brand-grayMedium transition-all duration-200">
+                    <i data-lucide="receipt-text" class="w-4 h-4"></i>
+                    Minhas Despesas
+                </a>
+                <a href="#" onclick="switchTab('config')" id="nav-config" class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-brand-slateText hover:text-white hover:bg-brand-grayMedium transition-all duration-200">
+                    <i data-lucide="settings" class="w-4 h-4"></i>
+                    Configurar Conexão
+                </a>
+            </nav>
+        </div>
+
+        <!-- Rodapé do menu / Status da Conexão -->
+        <div class="mt-8 pt-6 border-t border-brand-grayMedium">
+            <div class="bg-brand-grayMedium/50 p-4 rounded-xl border border-brand-grayMedium">
+                <div class="flex items-center gap-2 mb-1">
+                    <span id="status-dot" class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span id="status-text" class="text-xs font-semibold text-emerald-400">Modo Demonstrativo</span>
+                </div>
+                <p class="text-[10px] text-brand-slateText">Banco de dados local em memória simulado.</p>
+                <button onclick="toggleApiMode()" id="btn-toggle-api" class="mt-3 w-full py-1.5 bg-brand-grayLight hover:bg-brand-purple hover:text-brand-black text-white rounded-lg text-xs font-medium transition-all duration-200">
+                    Conectar à API C#
+                </button>
+            </div>
+        </div>
+    </aside>
+
+    <!-- ÁREA DE CONTEÚDO PRINCIPAL -->
+    <main class="flex-1 flex flex-col min-w-0 bg-brand-black">
+
+        <!-- HEADER SUPERIOR -->
+        <header class="h-20 border-b border-brand-grayMedium px-6 md:px-8 flex items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <i data-lucide="user-circle-2" class="w-8 h-8 text-brand-purple"></i>
+                <div>
+                    <h2 class="text-sm font-bold" id="current-user-name">Estudante Programador</h2>
+                    <p class="text-xs text-brand-slateText" id="current-user-email">estudante@ipt.pt</p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-3">
+                <button onclick="openModalDespesa()" class="bg-brand-purple hover:bg-brand-purpleDark text-brand-black font-bold text-sm px-4 py-2.5 rounded-xl flex items-center gap-2 transition-all duration-200 shadow-md shadow-brand-purple/10">
+                    <i data-lucide="plus" class="w-4 h-4"></i>
+                    Lançar Despesa
+                </button>
+            </div>
+        </header>
+
+        <!-- CONTAINER DAS VIEWS -->
+        <div class="p-6 md:p-8 flex-1 overflow-y-auto">
+
+            <!-- ================= VIEW 1: DASHBOARD ================= -->
+            <section id="view-dashboard" class="space-y-8">
+                <!-- GRID DOS CARDS DE MÉTRICAS -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <!-- Card 1: Salário -->
+                    <div class="bg-brand-grayDark border border-brand-grayMedium p-5 rounded-2xl relative overflow-hidden group">
+                        <div class="flex justify-between items-start mb-4">
+                            <span class="text-xs font-semibold text-brand-slateText uppercase tracking-wider">Salário Cadastrado</span>
+                            <div class="p-2 bg-emerald-500/10 rounded-xl text-emerald-400">
+                                <i data-lucide="wallet" class="w-4 h-4"></i>
+                            </div>
+                        </div>
+                        <h3 class="text-2xl font-bold tracking-tight" id="dash-salario">R$ 0,00</h3>
+                        <p class="text-xs text-brand-slateText mt-1 flex items-center gap-1">
+                            <span class="text-emerald-400 flex items-center font-medium">100%</span> da receita principal
+                        </p>
+                        <button onclick="openModalSalario()" class="absolute right-3 bottom-3 opacity-0 group-hover:opacity-100 transition-opacity text-xs text-brand-purple hover:underline">Editar</button>
+                    </div>
+
+                    <!-- Card 2: Despesas Totais -->
+                    <div class="bg-brand-grayDark border border-brand-grayMedium p-5 rounded-2xl">
+                        <div class="flex justify-between items-start mb-4">
+                            <span class="text-xs font-semibold text-brand-slateText uppercase tracking-wider">Despesas Totais</span>
+                            <div class="p-2 bg-rose-500/10 rounded-xl text-rose-400">
+                                <i data-lucide="trending-up" class="w-4 h-4"></i>
+                            </div>
+                        </div>
+                        <h3 class="text-2xl font-bold tracking-tight text-rose-400" id="dash-total-despesas">R$ 0,00</h3>
+                        <p class="text-xs text-brand-slateText mt-1" id="dash-despesas-percent">0% do seu orçamento utilizado</p>
+                    </div>
+
+                    <!-- Card 3: Saldo Restante -->
+                    <div class="bg-brand-grayDark border border-brand-grayMedium p-5 rounded-2xl">
+                        <div class="flex justify-between items-start mb-4">
+                            <span class="text-xs font-semibold text-brand-slateText uppercase tracking-wider">Saldo Restante</span>
+                            <div class="p-2 bg-brand-purple/10 rounded-xl text-brand-purple">
+                                <i data-lucide="banknote" class="w-4 h-4"></i>
+                            </div>
+                        </div>
+                        <h3 class="text-2xl font-bold tracking-tight" id="dash-saldo">R$ 0,00</h3>
+                        <p class="text-xs text-brand-slateText mt-1" id="dash-saldo-status">Disponível para investimentos</p>
+                    </div>
+
+                    <!-- Card 4: Despesas Pagas -->
+                    <div class="bg-brand-grayDark border border-brand-grayMedium p-5 rounded-2xl">
+                        <div class="flex justify-between items-start mb-4">
+                            <span class="text-xs font-semibold text-brand-slateText uppercase tracking-wider">Despesas Quitadas</span>
+                            <div class="p-2 bg-blue-500/10 rounded-xl text-blue-400">
+                                <i data-lucide="check-circle" class="w-4 h-4"></i>
+                            </div>
+                        </div>
+                        <h3 class="text-2xl font-bold tracking-tight text-blue-400" id="dash-despesas-pagas">0 / 0</h3>
+                        <p class="text-xs text-brand-slateText mt-1" id="dash-pagas-percent">Nenhuma conta pendente</p>
+                    </div>
+                </div>
+
+                <!-- SEÇÃO INTERMEDIÁRIA: Gráfico de Progresso e Métricas -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Painel de Saúde Financeira -->
+                    <div class="lg:col-span-2 bg-brand-grayDark border border-brand-grayMedium p-6 rounded-2xl flex flex-col justify-between">
+                        <div>
+                            <h3 class="text-base font-bold mb-1">Status de Saúde Orçamentária</h3>
+                            <p class="text-xs text-brand-slateText mb-6">Comparação direta entre o seu salário mensal e as despesas cadastradas.</p>
+
+                            <div class="space-y-4">
+                                <div>
+                                    <div class="flex justify-between text-xs font-medium mb-1.5">
+                                        <span>Limite de Despesas Recomendado (70%)</span>
+                                        <span id="progress-percent-label">0%</span>
+                                    </div>
+                                    <div class="w-full bg-brand-grayMedium h-3.5 rounded-full overflow-hidden">
+                                        <div id="progress-bar-fill" class="bg-brand-purple h-full transition-all duration-500" style="width: 0%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-3 gap-4 mt-8 pt-6 border-t border-brand-grayMedium text-center">
+                            <div>
+                                <p class="text-[10px] uppercase font-bold text-brand-slateText tracking-wider">Despesas Fixas</p>
+                                <p class="text-sm font-bold mt-1 text-zinc-300" id="summary-fixas">R$ 0,00</p>
+                            </div>
+                            <div>
+                                <p class="text-[10px] uppercase font-bold text-brand-slateText tracking-wider">Despesas Variáveis</p>
+                                <p class="text-sm font-bold mt-1 text-zinc-300" id="summary-variaveis">R$ 0,00</p>
+                            </div>
+                            <div>
+                                <p class="text-[10px] uppercase font-bold text-brand-slateText tracking-wider">Uso do PIX/Débito</p>
+                                <p class="text-sm font-bold mt-1 text-brand-purple" id="summary-pix-debito">R$ 0,00</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Métricas Rápidas por Categoria -->
+                    <div class="bg-brand-grayDark border border-brand-grayMedium p-6 rounded-2xl">
+                        <h3 class="text-base font-bold mb-4">Distribuição por Categoria</h3>
+                        <div class="space-y-4" id="categories-distribution-list">
+                            <!-- Injetado dinamicamente via JS -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- LISTAGEM DE DESPESAS RECENTES -->
+                <div class="bg-brand-grayDark border border-brand-grayMedium p-6 rounded-2xl">
+                    <div class="flex justify-between items-center mb-6">
+                        <div>
+                            <h3 class="text-base font-bold">Lançamentos Recentes</h3>
+                            <p class="text-xs text-brand-slateText">Seus últimos registros de despesas no sistema.</p>
+                        </div>
+                        <button onclick="switchTab('despesas')" class="text-xs text-brand-purple font-semibold hover:underline flex items-center gap-1">
+                            Ver Todas
+                            <i data-lucide="chevron-right" class="w-3 h-3"></i>
+                        </button>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="border-b border-brand-grayMedium text-[11px] text-brand-slateText uppercase tracking-wider">
+                                    <th class="pb-3 font-semibold">Descrição</th>
+                                    <th class="pb-3 font-semibold">Categoria</th>
+                                    <th class="pb-3 font-semibold">Vencimento</th>
+                                    <th class="pb-3 font-semibold">Meio</th>
+                                    <th class="pb-3 font-semibold">Tipo</th>
+                                    <th class="pb-3 font-semibold text-right">Valor</th>
+                                    <th class="pb-3 font-semibold text-center">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="recent-expenses-tbody" class="divide-y divide-brand-grayMedium text-xs">
+                                <!-- Injetado dinamicamente via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ================= VIEW 2: DESPESAS COMPLETA ================= -->
+            <section id="view-despesas" class="hidden space-y-6">
+                <!-- Cabeçalho da Seção -->
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div>
+                        <h2 class="text-xl font-bold">Gerenciador de Despesas</h2>
+                        <p class="text-xs text-brand-slateText">Crie, visualize, edite e remova despesas do seu banco de dados.</p>
+                    </div>
+                    <!-- Filtros Rápidos -->
+                    <div class="flex flex-wrap items-center gap-2">
+                        <select id="filter-type" onchange="loadExpenses()" class="bg-brand-grayDark border border-brand-grayMedium text-xs text-white rounded-lg px-3 py-2 focus:ring-1 focus:ring-brand-purple focus:outline-none">
+                            <option value="ALL">Todos os Tipos</option>
+                            <option value="FIXA">Fixas</option>
+                            <option value="VARIAVEL">Variáveis</option>
+                        </select>
+                        <select id="filter-pago" onchange="loadExpenses()" class="bg-brand-grayDark border border-brand-grayMedium text-xs text-white rounded-lg px-3 py-2 focus:ring-1 focus:ring-brand-purple focus:outline-none">
+                            <option value="ALL">Todos os Status</option>
+                            <option value="PAGO">Pagas</option>
+                            <option value="PENDENTE">Pendentes</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Tabela de Controle -->
+                <div class="bg-brand-grayDark border border-brand-grayMedium rounded-2xl overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-brand-grayMedium/30 border-b border-brand-grayMedium text-[11px] text-brand-slateText uppercase tracking-wider">
+                                    <th class="p-4 font-semibold">Descrição</th>
+                                    <th class="p-4 font-semibold">Categoria</th>
+                                    <th class="p-4 font-semibold">Vencimento</th>
+                                    <th class="p-4 font-semibold">Meio de Pagamento</th>
+                                    <th class="p-4 font-semibold">Classificação</th>
+                                    <th class="p-4 font-semibold text-right">Valor</th>
+                                    <th class="p-4 font-semibold text-center">Pago</th>
+                                    <th class="p-4 font-semibold text-center">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="full-expenses-tbody" class="divide-y divide-brand-grayMedium text-xs">
+                                <!-- Injetado dinamicamente via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ================= VIEW 3: CONFIGURAÇÃO DE CONEXÃO ================= -->
+            <section id="view-config" class="hidden space-y-6 max-w-xl">
+                <div>
+                    <h2 class="text-xl font-bold">Configurações de Integração</h2>
+                    <p class="text-xs text-brand-slateText">Gerencie a conexão da interface com o seu servidor C# executado localmente.</p>
+                </div>
+
+                <div class="bg-brand-grayDark border border-brand-grayMedium p-6 rounded-2xl space-y-4">
+                    <div>
+                        <label class="block text-xs font-semibold uppercase text-brand-slateText mb-1.5">Endereço Base da API Local</label>
+                        <input type="text" id="config-api-url" value="http://localhost:5244" class="w-full bg-brand-grayMedium border border-brand-grayMedium rounded-xl px-4 py-2.5 text-xs text-white focus:ring-1 focus:ring-brand-purple focus:outline-none">
+                        <p class="text-[10px] text-brand-slateText mt-1.5">Configure para o endereço gerado pelo seu Visual Studio ao iniciar o Swagger.</p>
+                    </div>
+
+                    <div class="pt-4 border-t border-brand-grayMedium flex justify-end gap-3">
+                        <button onclick="testApiConnection()" class="bg-brand-grayMedium hover:bg-brand-grayLight text-white px-4 py-2 rounded-xl text-xs font-semibold transition-all duration-200">
+                            Testar Conexão
+                        </button>
+                        <button onclick="saveConfig()" class="bg-brand-purple hover:bg-brand-purpleDark text-brand-black px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200">
+                            Salvar Configurações
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <!-- ================= MODAL: CADASTRAR / EDITAR DESPESA ================= -->
+    <div id="modal-despesa" class="fixed inset-0 bg-brand-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-brand-grayDark border border-brand-grayMedium rounded-2xl w-full max-w-md p-6 space-y-5">
+            <div class="flex justify-between items-center">
+                <h3 class="text-base font-bold" id="modal-title">Lançar Despesa</h3>
+                <button onclick="closeModalDespesa()" class="text-brand-slateText hover:text-white transition-colors">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                </button>
+            </div>
+
+            <form id="form-despesa" onsubmit="saveDespesa(event)" class="space-y-4">
+                <input type="hidden" id="form-despesa-id">
+
+                <div>
+                    <label class="block text-[10px] font-bold uppercase text-brand-slateText mb-1">Descrição</label>
+                    <input type="text" id="form-descricao" required placeholder="Ex: Conta de Luz, Aluguel" class="w-full bg-brand-grayMedium border border-brand-grayMedium rounded-xl px-4 py-2.5 text-xs text-white focus:ring-1 focus:ring-brand-purple focus:outline-none">
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-[10px] font-bold uppercase text-brand-slateText mb-1">Valor (R$)</label>
+                        <input type="number" step="0.01" id="form-valor" required placeholder="0.00" class="w-full bg-brand-grayMedium border border-brand-grayMedium rounded-xl px-4 py-2.5 text-xs text-white focus:ring-1 focus:ring-brand-purple focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold uppercase text-brand-slateText mb-1">Data de Vencimento</label>
+                        <input type="date" id="form-data" required class="w-full bg-brand-grayMedium border border-brand-grayMedium rounded-xl px-4 py-2.5 text-xs text-white focus:ring-1 focus:ring-brand-purple focus:outline-none">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-[10px] font-bold uppercase text-brand-slateText mb-1">Meio de Pagamento</label>
+                        <select id="form-meio" class="w-full bg-brand-grayMedium border border-brand-grayMedium rounded-xl px-4 py-2.5 text-xs text-white focus:ring-1 focus:ring-brand-purple focus:outline-none">
+                            <option value="CREDITO">Cartão de Crédito</option>
+                            <option value="DEBITO">Cartão de Débito</option>
+                            <option value="PIX">Transferência PIX</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold uppercase text-brand-slateText mb-1">Tipo de Despesa</label>
+                        <select id="form-tipo" class="w-full bg-brand-grayMedium border border-brand-grayMedium rounded-xl px-4 py-2.5 text-xs text-white focus:ring-1 focus:ring-brand-purple focus:outline-none">
+                            <option value="FIXA">Despesa Fixa</option>
+                            <option value="VARIAVEL">Despesa Variável</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-[10px] font-bold uppercase text-brand-slateText mb-1">Categoria</label>
+                        <select id="form-categoria" class="w-full bg-brand-grayMedium border border-brand-grayMedium rounded-xl px-4 py-2.5 text-xs text-white focus:ring-1 focus:ring-brand-purple focus:outline-none">
+                            <!-- Categorias injetadas dinamicamente -->
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold uppercase text-brand-slateText mb-1">Usuário Autor</label>
+                        <select id="form-utilizador" class="w-full bg-brand-grayMedium border border-brand-grayMedium rounded-xl px-4 py-2.5 text-xs text-white focus:ring-1 focus:ring-brand-purple focus:outline-none">
+                            <!-- Usuários injetados dinamicamente -->
+                        </select>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-2 pt-2">
+                    <input type="checkbox" id="form-pago" class="w-4 h-4 rounded border-brand-grayMedium text-brand-purple focus:ring-brand-purple bg-brand-grayMedium">
+                    <label for="form-pago" class="text-xs font-semibold text-zinc-300 cursor-pointer select-none">Marcar despesa como PAGA</label>
+                </div>
+
+                <div class="pt-4 border-t border-brand-grayMedium flex justify-end gap-3">
+                    <button type="button" onclick="closeModalDespesa()" class="bg-brand-grayMedium hover:bg-brand-grayLight text-white px-4 py-2.5 rounded-xl text-xs font-semibold transition-all duration-200">
+                        Cancelar
+                    </button>
+                    <button type="submit" class="bg-brand-purple hover:bg-brand-purpleDark text-brand-black px-5 py-2.5 rounded-xl text-xs font-bold transition-all duration-200">
+                        Salvar Lançamento
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ================= MODAL: EDITAR SALÁRIO ================= -->
+    <div id="modal-salario" class="fixed inset-0 bg-brand-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-brand-grayDark border border-brand-grayMedium rounded-2xl w-full max-w-sm p-6 space-y-5">
+            <div class="flex justify-between items-center">
+                <h3 class="text-base font-bold">Ajustar Salário Mensal</h3>
+                <button onclick="closeModalSalario()" class="text-brand-slateText hover:text-white transition-colors">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                </button>
+            </div>
+
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-[10px] font-bold uppercase text-brand-slateText mb-1">Novo Salário (R$)</label>
+                    <input type="number" step="0.01" id="form-novo-salario" required class="w-full bg-brand-grayMedium border border-brand-grayMedium rounded-xl px-4 py-2.5 text-xs text-white focus:ring-1 focus:ring-brand-purple focus:outline-none">
+                </div>
+
+                <div class="pt-4 border-t border-brand-grayMedium flex justify-end gap-3">
+                    <button onclick="closeModalSalario()" class="bg-brand-grayMedium hover:bg-brand-grayLight text-white px-4 py-2.5 rounded-xl text-xs font-semibold transition-all duration-200">
+                        Cancelar
+                    </button>
+                    <button onclick="saveSalario()" class="bg-brand-purple hover:bg-brand-purpleDark text-brand-black px-5 py-2.5 rounded-xl text-xs font-bold transition-all duration-200">
+                        Salvar Alteração
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= SISTEMA DE TOASTS (Mensagens de Feedback) ================= -->
+    <div id="toast" class="fixed bottom-4 right-4 bg-brand-grayDark border border-brand-grayMedium rounded-2xl p-4 shadow-2xl flex items-center gap-3 transition-transform duration-300 transform translate-y-24 z-50">
+        <div class="p-1.5 rounded-xl text-emerald-400 bg-emerald-500/10" id="toast-icon-container">
+            <i data-lucide="check" class="w-5 h-5"></i>
+        </div>
+        <div>
+            <p class="text-xs font-bold" id="toast-title">Sucesso!</p>
+            <p class="text-[10px] text-brand-slateText" id="toast-desc">Lançamento salvo corretamente.</p>
+        </div>
+    </div>
+
+    <!-- ================= JAVASCRIPT: LÓGICA E CONTROLES DO FRONTEND ================= -->
+    <script>
+        // CONFIGURAÇÕES GERAIS E ESTADO DA APLICAÇÃO
+        let state = {
+            apiMode: false, // false = Modo Demo (InMemory); true = Conectado à API Local
+            apiUrl: 'http://localhost:5244',
+            utilizadores: [
+                { id: 1, nome: "Estudante Programador", email: "estudante@ipt.pt", salarioMensal: 2500.00 }
+            ],
+            categorias: [
+                { id: 1, nome: "Habitação", corHex: "#FF5733" },
+                { id: 2, nome: "Alimentação", corHex: "#33FF57" },
+                { id: 3, nome: "Transportes", corHex: "#3357FF" },
+                { id: 4, nome: "Lazer", corHex: "#F333FF" }
+            ],
+            despesas: [
+                { id: 1, descricao: "Aluguel da Casa", valor: 1200.00, dataVencimento: "2026-06-10", pago: true, meioPagamento: "PIX", tipoDespesa: "FIXA", utilizadorId: 1, categoriaId: 1 },
+                { id: 2, descricao: "Mercado Mensal", valor: 450.50, dataVencimento: "2026-06-15", pago: false, meioPagamento: "CREDITO", tipoDespesa: "VARIAVEL", utilizadorId: 1, categoriaId: 2 },
+                { id: 3, descricao: "Combustível", valor: 150.00, dataVencimento: "2026-06-18", pago: false, meioPagamento: "DEBITO", tipoDespesa: "VARIAVEL", utilizadorId: 1, categoriaId: 3 }
+            ]
+        };
+
+        // INICIALIZAÇÃO
+        window.onload = function() {
+            lucide.createIcons();
+
+            // Tenta carregar dados das configurações salvas no navegador (se houver)
+            const savedUrl = localStorage.getItem('catbills_api_url');
+            if(savedUrl) {
+                state.apiUrl = savedUrl;
+                document.getElementById('config-api-url').value = savedUrl;
+            }
+
+            renderAll();
+        }
+
+        // CONTROLADOR DE ABAS (VIEWS)
+        function switchTab(tabId) {
+            // Esconde todas as seções
+            document.getElementById('view-dashboard').classList.add('hidden');
+            document.getElementById('view-despesas').classList.add('hidden');
+            document.getElementById('view-config').classList.add('hidden');
+
+            // Desativa os estilos dos links do menu
+            const tabs = ['dashboard', 'despesas', 'config'];
+            tabs.forEach(t => {
+                const navLink = document.getElementById(`nav-${t}`);
+                navLink.className = "flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-brand-slateText hover:text-white hover:bg-brand-grayMedium transition-all duration-200";
+            });
+
+            // Mostra a seção ativa e pinta o botão correspondente
+            document.getElementById(`view-${tabId}`).classList.remove('hidden');
+            const activeLink = document.getElementById(`nav-${tabId}`);
+            activeLink.className = "flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium bg-brand-purple text-brand-black font-semibold shadow-md shadow-brand-purple/10";
+        }
+
+        // ALTERNADOR DO MODO DE CONEXÃO (API C# vs DEMO)
+        async function toggleApiMode() {
+            if (!state.apiMode) {
+                // Tenta conectar à API para ativar o modo
+                const connected = await verifyApiConnectivity();
+                if (connected) {
+                    state.apiMode = true;
+                    showToast("Conectado!", "Sincronizado com o servidor C#.", "check", "emerald");
+                    await syncWithDatabase();
+                } else {
+                    showToast("Falha na API!", "Não conseguimos contato com o servidor localhost.", "alert-triangle", "rose");
+                }
+            } else {
+                state.apiMode = false;
+                showToast("Modo Demonstrativo", "Exibindo dados simulados em memória.", "info", "brand-purple");
+            }
+            renderAll();
+        }
+
+        // SISTEMA DE FEEDBACK VISUAL (TOAST)
+        function showToast(title, desc, iconName, colorName) {
+            const toast = document.getElementById('toast');
+            const tTitle = document.getElementById('toast-title');
+            const tDesc = document.getElementById('toast-desc');
+            const iconContainer = document.getElementById('toast-icon-container');
+
+            tTitle.innerText = title;
+            tDesc.innerText = desc;
+
+            iconContainer.className = `p-1.5 rounded-xl text-white bg-brand-purple`;
+            iconContainer.innerHTML = `<i data-lucide="${iconName}" class="w-5 h-5"></i>`;
+            lucide.createIcons();
+
+            toast.classList.remove('translate-y-24');
+            toast.classList.add('translate-y-0');
+
+            setTimeout(() => {
+                toast.classList.remove('translate-y-0');
+                toast.classList.add('translate-y-24');
+            }, 3000);
+        }
+
+        // VERIFICA SE A API ESTÁ NO AR
+        async function verifyApiConnectivity() {
+            try {
+                const response = await fetch(`${state.apiUrl}/api/utilizadores`, { method: 'GET' });
+                return response.status === 200;
+            } catch (e) {
+                return false;
+            }
+        }
+
+        // BUSCA TODOS OS DADOS DO BANCO C#
+        async function syncWithDatabase() {
+            if(!state.apiMode) return;
+            try {
+                // Busca Utilizadores
+                const resUsers = await fetch(`${state.apiUrl}/api/utilizadores`);
+                if(resUsers.ok) state.utilizadores = await resUsers.json();
+
+                // Busca Despesas
+                const resDespesas = await fetch(`${state.apiUrl}/api/despesas`);
+                if(resDespesas.ok) {
+                    const dbDespesas = await resDespesas.json();
+                    // Reconverte campos vindos do Dto se necessário
+                    state.despesas = dbDespesas.map(d => ({
+                        id: d.id,
+                        descricao: d.descricao,
+                        valor: d.valor,
+                        dataVencimento: d.dataVencimento.split('T')[0],
+                        pago: d.pago,
+                        meioPagamento: d.meioPagamento,
+                        tipoDespesa: d.tipoDespesa,
+                        utilizadorId: state.utilizadores[0]?.id || 1, // Atribui ao usuário padrão se ausente
+                        categoriaId: state.categorias.find(c => c.nome === d.nomeCategoria)?.id || 1
+                    }));
+                }
+            } catch (err) {
+                console.error("Falha ao sincronizar com banco:", err);
+            }
+        }
+
+        // RENDERIZAÇÃO DOS ELEMENTOS DA TELA
+        function renderAll() {
+            // Atualiza barra de conexão
+            const statusDot = document.getElementById('status-dot');
+            const statusText = document.getElementById('status-text');
+            const btnToggle = document.getElementById('btn-toggle-api');
+
+            if (state.apiMode) {
+                statusDot.className = "w-2 h-2 rounded-full bg-emerald-500 animate-pulse";
+                statusText.innerText = "API C# Ativa";
+                statusText.className = "text-xs font-semibold text-emerald-400";
+                btnToggle.innerText = "Desconectar";
+            } else {
+                statusDot.className = "w-2 h-2 rounded-full bg-indigo-500 animate-pulse";
+                statusText.innerText = "Modo Demonstrativo";
+                statusText.className = "text-xs font-semibold text-indigo-400";
+                btnToggle.innerText = "Conectar API C#";
+            }
+
+            // Mapeia usuário ativo
+            const user = state.utilizadores[0] || { nome: "Estudante", email: "estudante@ipt.pt", salarioMensal: 0 };
+            document.getElementById('current-user-name').innerText = user.nome;
+            document.getElementById('current-user-email').innerText = user.email;
+
+            // Renderiza métricas do Dashboard
+            const salario = user.salarioMensal;
+            const totalDespesas = state.despesas.reduce((acc, curr) => acc + curr.valor, 0);
+            const saldo = salario - totalDespesas;
+            const despesasPagasCount = state.despesas.filter(d => d.pago).length;
+            const totalCount = state.despesas.length;
+
+            document.getElementById('dash-salario').innerText = formatCurrency(salario);
+            document.getElementById('dash-total-despesas').innerText = formatCurrency(totalDespesas);
+            document.getElementById('dash-saldo').innerText = formatCurrency(saldo);
+            document.getElementById('dash-despesas-pagas').innerText = `${despesasPagasCount} / ${totalCount}`;
+
+            // Mensagem do Saldo
+            const saldoStatus = document.getElementById('dash-saldo-status');
+            if (saldo < 0) {
+                saldoStatus.innerText = "Atenção: Orçamento estourado!";
+                saldoStatus.className = "text-xs text-rose-400 mt-1";
+            } else {
+                saldoStatus.innerText = "Disponível para investimentos";
+                saldoStatus.className = "text-xs text-brand-slateText mt-1";
+            }
+
+            // Percentual de orçamento
+            const percentUsed = salario > 0 ? Math.min(Math.round((totalDespesas / salario) * 100), 100) : 0;
+            document.getElementById('dash-despesas-percent').innerText = `${percentUsed}% do orçamento utilizado`;
+
+            // Barra de Progresso principal
+            document.getElementById('progress-percent-label').innerText = `${percentUsed}%`;
+            const progressBar = document.getElementById('progress-bar-fill');
+            progressBar.style.width = `${percentUsed}%`;
+            if (percentUsed >= 90) {
+                progressBar.className = "bg-rose-500 h-full transition-all duration-500";
+            } else if (percentUsed >= 70) {
+                progressBar.className = "bg-amber-500 h-full transition-all duration-500";
+            } else {
+                progressBar.className = "bg-brand-purple h-full transition-all duration-500";
+            }
+
+            // Contas Pagas Percent
+            const pagasPercent = totalCount > 0 ? Math.round((despesasPagasCount / totalCount) * 100) : 0;
+            document.getElementById('dash-pagas-percent').innerText = `${pagasPercent}% do total de despesas pagas`;
+
+            // Resumo de Classificação (Fixas vs Variáveis e Meios de Pagamento)
+            const totalFixas = state.despesas.filter(d => d.tipoDespesa === 'FIXA').reduce((acc, c) => acc + c.valor, 0);
+            const totalVariaveis = state.despesas.filter(d => d.tipoDespesa === 'VARIAVEL').reduce((acc, c) => acc + c.valor, 0);
+            const totalPixDebito = state.despesas.filter(d => d.meioPagamento === 'PIX' || d.meioPagamento === 'DEBITO').reduce((acc, c) => acc + c.valor, 0);
+
+            document.getElementById('summary-fixas').innerText = formatCurrency(totalFixas);
+            document.getElementById('summary-variaveis').innerText = formatCurrency(totalVariaveis);
+            document.getElementById('summary-pix-debito').innerText = formatCurrency(totalPixDebito);
+
+            // Categoria Distribution
+            renderCategoriesDistribution();
+
+            // Renderiza Tabelas
+            loadExpenses();
+        }
+
+        // CARREGA E FILTRA DESPESAS PARA AS DUAS TABELAS (REDUZIDA E COMPLETA)
+        function loadExpenses() {
+            const filterType = document.getElementById('filter-type').value;
+            const filterPago = document.getElementById('filter-pago').value;
+
+            // Filtro das despesas
+            let filtered = [...state.despesas];
+            if(filterType !== 'ALL') {
+                filtered = filtered.filter(d => d.tipoDespesa === filterType);
+            }
+            if(filterPago !== 'ALL') {
+                const queryPago = filterPago === 'PAGO';
+                filtered = filtered.filter(d => d.pago === queryPago);
+            }
+
+            // Renderiza Tabela Completa (Módulo Despesas)
+            const fullTbody = document.getElementById('full-expenses-tbody');
+            fullTbody.innerHTML = '';
+
+            if (filtered.length === 0) {
+                fullTbody.innerHTML = `
+                    <tr>
+                        <td colspan="8" class="p-8 text-center text-brand-slateText">Nenhuma despesa cadastrada ou correspondente aos filtros.</td>
+                    </tr>
+                `;
+            } else {
+                filtered.forEach(d => {
+                    const cat = state.categorias.find(c => c.id === d.categoriaId) || { nome: "Sem Categoria", corHex: "#FFF" };
+                    const user = state.utilizadores.find(u => u.id === d.utilizadorId) || { nome: "Desconhecido" };
+
+                    fullTbody.innerHTML += `
+                        <tr class="hover:bg-brand-grayMedium/20 transition-colors">
+                            <td class="p-4 font-semibold text-white">${d.descricao}</td>
+                            <td class="p-4">
+                                <span class="flex items-center gap-1.5">
+                                    <span class="w-2.5 h-2.5 rounded-full" style="background-color: ${cat.corHex}"></span>
+                                    ${cat.nome}
+                                </span>
+                            </td>
+                            <td class="p-4 text-brand-slateText">${formatDate(d.dataVencimento)}</td>
+                            <td class="p-4">
+                                <span class="bg-brand-grayMedium text-brand-slateText border border-zinc-700/50 px-2 py-1 rounded-md text-[10px] font-bold">
+                                    ${d.meioPagamento}
+                                </span>
+                            </td>
+                            <td class="p-4">
+                                <span class="px-2.5 py-1 rounded-full text-[10px] font-bold ${d.tipoDespesa === 'FIXA' ? 'bg-indigo-500/10 text-indigo-400' : 'bg-amber-500/10 text-amber-400'}">
+                                    ${d.tipoDespesa}
+                                </span>
+                            </td>
+                            <td class="p-4 font-bold text-right text-white">${formatCurrency(d.valor)}</td>
+                            <td class="p-4 text-center">
+                                <button onclick="toggleExpenseStatus(${d.id})" class="inline-flex items-center justify-center p-1 rounded-lg hover:bg-brand-grayMedium transition-colors">
+                                    <i data-lucide="${d.pago ? 'check-circle' : 'circle'}" class="w-5 h-5 ${d.pago ? 'text-emerald-400' : 'text-brand-slateText'}"></i>
+                                </button>
+                            </td>
+                            <td class="p-4 text-center">
+                                <div class="flex items-center justify-center gap-2">
+                                    <button onclick="editExpense(${d.id})" class="p-1.5 hover:bg-brand-grayMedium rounded-lg text-brand-slateText hover:text-brand-purple transition-all" title="Editar">
+                                        <i data-lucide="edit-3" class="w-4 h-4"></i>
+                                    </button>
+                                    <button onclick="deleteExpense(${d.id})" class="p-1.5 hover:bg-brand-grayMedium rounded-lg text-brand-slateText hover:text-rose-500 transition-all" title="Excluir">
+                                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                });
+            }
+
+            // Renderiza Tabela Reduzida (Dashboard)
+            const recentTbody = document.getElementById('recent-expenses-tbody');
+            recentTbody.innerHTML = '';
+            const recentList = [...state.despesas].slice(-4).reverse(); // Últimas 4 despesas cadastradas
+
+            if (recentList.length === 0) {
+                recentTbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="py-4 text-center text-brand-slateText">Nenhuma despesa adicionada recentemente.</td>
+                    </tr>
+                `;
+            } else {
+                recentList.forEach(d => {
+                    const cat = state.categorias.find(c => c.id === d.categoriaId) || { nome: "Geral", corHex: "#FFF" };
+                    recentTbody.innerHTML += `
+                        <tr class="hover:bg-brand-grayMedium/10 transition-colors">
+                            <td class="py-3 font-semibold text-white">${d.descricao}</td>
+                            <td class="py-3 text-brand-slateText">
+                                <span class="flex items-center gap-1.5 text-[11px]">
+                                    <span class="w-2 h-2 rounded-full" style="background-color: ${cat.corHex}"></span>
+                                    ${cat.nome}
+                                </span>
+                            </td>
+                            <td class="py-3 text-brand-slateText">${formatDate(d.dataVencimento)}</td>
+                            <td class="py-3 text-brand-slateText font-medium">${d.meioPagamento}</td>
+                            <td class="py-3 text-brand-slateText">${d.tipoDespesa}</td>
+                            <td class="py-3 font-bold text-right text-white">${formatCurrency(d.valor)}</td>
+                            <td class="py-3 text-center">
+                                <span class="px-2 py-0.5 rounded-full text-[9px] font-bold ${d.pago ? 'bg-emerald-500/10 text-emerald-400' : 'bg-rose-500/10 text-rose-400'}">
+                                    ${d.pago ? 'Pago' : 'Pendente'}
+                                </span>
+                            </td>
+                        </tr>
+                    `;
+                });
+            }
+
+            lucide.createIcons();
+        }
+
+        // CARREGA DISTRIBUIÇÃO POR CATEGORIA
+        function renderCategoriesDistribution() {
+            const list = document.getElementById('categories-distribution-list');
+            list.innerHTML = '';
+
+            const total = state.despesas.reduce((acc, curr) => acc + curr.valor, 0);
+
+            state.categorias.forEach(cat => {
+                const sum = state.despesas.filter(d => d.categoriaId === cat.id).reduce((acc, curr) => acc + curr.valor, 0);
+                const percent = total > 0 ? Math.round((sum / total) * 100) : 0;
+
+                list.innerHTML += `
+                    <div>
+                        <div class="flex justify-between items-center text-xs font-semibold mb-1">
+                            <span class="flex items-center gap-1.5 text-zinc-300">
+                                <span class="w-2 h-2 rounded-full" style="background-color: ${cat.corHex}"></span>
+                                ${cat.nome}
+                            </span>
+                            <span>${formatCurrency(sum)} <span class="text-[10px] text-brand-slateText">(${percent}%)</span></span>
+                        </div>
+                        <div class="w-full bg-brand-grayMedium h-1.5 rounded-full overflow-hidden">
+                            <div class="h-full rounded-full transition-all duration-300" style="background-color: ${cat.corHex}; width: ${percent}%"></div>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        // ALTERNA STATUS PAGO / PENDENTE DA DESPESA (RÁPIDO)
+        async function toggleExpenseStatus(id) {
+            const despesa = state.despesas.find(d => d.id === id);
+            if (!despesa) return;
+
+            const novoPago = !despesa.pago;
+
+            if (state.apiMode) {
+                // Tenta atualizar no banco de dados C#
+                try {
+                    const dto = {
+                        descricao: despesa.descricao,
+                        valor: despesa.valor,
+                        dataVencimento: despesa.dataVencimento,
+                        pago: novoPago,
+                        meioPagamento: despesa.meioPagamento,
+                        tipoDespesa: despesa.tipoDespesa,
+                        utilizadorId: despesa.utilizadorId,
+                        categoriaId: despesa.categoriaId
+                    };
+                    const response = await fetch(`${state.apiUrl}/api/despesas/${id}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(dto)
+                    });
+
+                    if (response.status === 204) {
+                        despesa.pago = novoPago;
+                        showToast("Status Modificado!", `Lançamento marcado como ${novoPago ? 'pago' : 'pendente'}.`, "check", "emerald");
+                    }
+                } catch (e) {
+                    showToast("Erro de Rede", "Falha ao atualizar na API.", "alert-triangle", "rose");
+                }
+            } else {
+                despesa.pago = novoPago;
+                showToast("Status Modificado!", `Lançamento marcado como ${novoPago ? 'pago' : 'pendente'}.`, "check", "indigo");
+            }
+            renderAll();
+        }
+
+        // ABRE MODAL DE DESPESA PARA CADASTRO OU EDIÇÃO
+        function openModalDespesa(editId = null) {
+            const modal = document.getElementById('modal-despesa');
+            const title = document.getElementById('modal-title');
+
+            // Popula os selects do formulário
+            const catSelect = document.getElementById('form-categoria');
+            catSelect.innerHTML = state.categorias.map(c => `<option value="${c.id}">${c.nome}</option>`).join('');
+
+            const userSelect = document.getElementById('form-utilizador');
+            userSelect.innerHTML = state.utilizadores.map(u => `<option value="${u.id}">${u.nome}</option>`).join('');
+
+            if (editId) {
+                title.innerText = "Editar Despesa";
+                const d = state.despesas.find(item => item.id === editId);
+                if (d) {
+                    document.getElementById('form-despesa-id').value = d.id;
+                    document.getElementById('form-descricao').value = d.descricao;
+                    document.getElementById('form-valor').value = d.valor;
+                    document.getElementById('form-data').value = d.dataVencimento;
+                    document.getElementById('form-meio').value = d.meioPagamento;
+                    document.getElementById('form-tipo').value = d.tipoDespesa;
+                    document.getElementById('form-pago').checked = d.pago;
+                    catSelect.value = d.categoriaId;
+                    userSelect.value = d.utilizadorId;
+                }
+            } else {
+                title.innerText = "Lançar Despesa";
+                document.getElementById('form-despesa-id').value = "";
+                document.getElementById('form-despesa').reset();
+                document.getElementById('form-data').value = new Date().toISOString().split('T')[0];
+            }
+
+            modal.classList.remove('hidden');
+        }
+
+        function closeModalDespesa() {
+            document.getElementById('modal-despesa').classList.add('hidden');
+        }
+
+        // SALVAR LANÇAMENTO (CRIAÇÃO OU EDIÇÃO DO CRUD)
+        async function saveDespesa(event) {
+            event.preventDefault();
+
+            const id = document.getElementById('form-despesa-id').value;
+            const dto = {
+                descricao: document.getElementById('form-descricao').value,
+                valor: parseFloat(document.getElementById('form-valor').value),
+                dataVencimento: document.getElementById('form-data').value,
+                pago: document.getElementById('form-pago').checked,
+                meioPagamento: document.getElementById('form-meio').value,
+                tipoDespesa: document.getElementById('form-tipo').value,
+                utilizadorId: parseInt(document.getElementById('form-utilizador').value),
+                categoriaId: parseInt(document.getElementById('form-categoria').value)
+            };
+
+            if (state.apiMode) {
+                try {
+                    let response;
+                    if (id) {
+                        // Edição (PUT)
+                        response = await fetch(`${state.apiUrl}/api/despesas/${id}`, {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(dto)
+                        });
+                        if (response.status === 204) {
+                            showToast("Alteração Concluída!", "A despesa foi editada com sucesso no servidor.", "check", "emerald");
+                        }
+                    } else {
+                        // Cadastro (POST)
+                        response = await fetch(`${state.apiUrl}/api/despesas`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(dto)
+                        });
+                        if (response.status === 201) {
+                            showToast("Sucesso!", "Nova despesa cadastrada no banco de dados.", "check", "emerald");
+                        }
+                    }
+                    await syncWithDatabase();
+                } catch (e) {
+                    showToast("Erro de Integração", "Não foi possível sincronizar com o banco.", "alert-triangle", "rose");
+                }
+            } else {
+                // Modo Simulador (In Memory)
+                if (id) {
+                    const idx = state.despesas.findIndex(d => d.id === parseInt(id));
+                    if (idx !== -1) {
+                        state.despesas[idx] = { id: parseInt(id), ...dto };
+                        showToast("Alterado!", "Despesa editada localmente com sucesso.", "check", "indigo");
+                    }
+                } else {
+                    const newId = state.despesas.length > 0 ? Math.max(...state.despesas.map(d => d.id)) + 1 : 1;
+                    state.despesas.push({ id: newId, ...dto });
+                    showToast("Lançado!", "Despesa adicionada à lista local.", "check", "indigo");
+                }
+            }
+
+            closeModalDespesa();
+            renderAll();
+        }
+
+        // REMOVER DESPESA (DELETE DO CRUD)
+        async function deleteExpense(id) {
+            // Caixa de diálogo personalizada (nunca use browser alerts/confirms!)
+            const confirmacao = confirm("Deseja realmente excluir permanentemente esta despesa?");
+            if (!confirmacao) return;
+
+            if (state.apiMode) {
+                try {
+                    const response = await fetch(`${state.apiUrl}/api/despesas/${id}`, { method: 'DELETE' });
+                    if (response.status === 204) {
+                        showToast("Removido!", "Despesa excluída do servidor SQLite.", "trash-2", "emerald");
+                        await syncWithDatabase();
+                    }
+                } catch (e) {
+                    showToast("Erro ao Excluir", "Não foi possível deletar via API.", "alert-triangle", "rose");
+                }
+            } else {
+                state.despesas = state.despesas.filter(d => d.id !== id);
+                showToast("Removido!", "Registro apagado da memória local.", "trash-2", "indigo");
+            }
+            renderAll();
+        }
+
+        // CARREGA FORMULÁRIO DE EDIÇÃO
+        function editExpense(id) {
+            openModalDespesa(id);
+        }
+
+        // CONTROLES DE CONFIGURAÇÃO DE CONEXÃO
+        function saveConfig() {
+            const rawUrl = document.getElementById('config-api-url').value.trim();
+            // Remove barras finais se houver
+            const cleanUrl = rawUrl.endsWith('/') ? rawUrl.slice(0, -1) : rawUrl;
+
+            state.apiUrl = cleanUrl;
+            localStorage.setItem('catbills_api_url', cleanUrl);
+            showToast("Configuração Salva", `API configurada para: ${cleanUrl}`, "settings", "emerald");
+
+            if(state.apiMode) {
+                // Força atualização se já estiver em modo API
+                syncWithDatabase().then(() => renderAll());
+            }
+        }
+
+        async function testApiConnection() {
+            const url = document.getElementById('config-api-url').value.trim();
+            const cleanUrl = url.endsWith('/') ? url.slice(0, -1) : url;
+
+            try {
+                const response = await fetch(`${cleanUrl}/api/utilizadores`, { method: 'GET' });
+                if (response.status === 200) {
+                    alert(`Sucesso! Conexão estabelecida com sucesso no endereço: ${cleanUrl}`);
+                } else {
+                    alert(`Conexão respondida com erro HTTP ${response.status}. Verifique se o Swagger está em execução.`);
+                }
+            } catch (e) {
+                alert(`Conexão recusada em: ${cleanUrl}. Certifique-se de que o seu projeto C# do Visual Studio está sendo executado e que a URL está correta.`);
+            }
+        }
+
+        // GERENCIAMENTO DE SALÁRIO DO USUÁRIO
+        function openModalSalario() {
+            const user = state.utilizadores[0] || { salarioMensal: 0 };
+            document.getElementById('form-novo-salario').value = user.salarioMensal;
+            document.getElementById('modal-salario').classList.remove('hidden');
+        }
+
+        function closeModalSalario() {
+            document.getElementById('modal-salario').classList.add('hidden');
+        }
+
+        async function saveSalario() {
+            const novoValor = parseFloat(document.getElementById('form-novo-salario').value);
+            if(isNaN(novoValor) || novoValor < 0) return;
+
+            const user = state.utilizadores[0];
+            if(!user) return;
+
+            if(state.apiMode) {
+                try {
+                    const dto = {
+                        nome: user.nome,
+                        email: user.email,
+                        salarioMensal: novoValor
+                    };
+                    const response = await fetch(`${state.apiUrl}/api/utilizadores`, {
+                        method: 'POST', // Conforme o DTO mapeado no C# para utilizadores
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(dto)
+                    });
+                    if (response.ok) {
+                        showToast("Salário Atualizado!", "O novo salário foi salvo com sucesso.", "check", "emerald");
+                    }
+                    await syncWithDatabase();
+                } catch (e) {
+                    showToast("Erro", "Falha ao salvar salário na API.", "alert-triangle", "rose");
+                }
+            } else {
+                user.salarioMensal = novoValor;
+                showToast("Salário Atualizado!", "O valor foi ajustado na memória local.", "check", "indigo");
+            }
+
+            closeModalSalario();
+            renderAll();
+        }
+
+        // UTILITÁRIOS DE FORMATAÇÃO
+        function formatCurrency(val) {
+            return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
+        }
+
+        function formatDate(dateStr) {
+            if(!dateStr) return '';
+            const parts = dateStr.split('-');
+            if(parts.length !== 3) return dateStr;
+            return `${parts[2]}/${parts[1]}/${parts[0]}`;
+        }
+    </script>
+</body>
+</html>
