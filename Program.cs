@@ -2,19 +2,35 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json.Serialization;
 using CatBills.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Configuração do SQLite
+// 1. Configuração do Banco de Dados SQLite
 builder.Services.AddDbContext<DataContext>(options =>
     options.UseSqlite("Data Source=catbills.db"));
 
-builder.Services.AddControllers();
+// 2. Controladores e Prevenção de Loops Infinitos de Referência JSON
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+    });
+
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+
+// 3. Documentação Swagger com Resolução de Conflitos de Rotas
+builder.Services.AddSwaggerGen(c =>
+{
+    c.ResolveConflictingActions(apiDescriptions => apiDescriptions.First());
+});
 
 var app = builder.Build();
+
+// 4. Ativar o carregamento automático do index.html na pasta wwwroot
+app.UseDefaultFiles();
+app.UseStaticFiles();
 
 if (app.Environment.IsDevelopment())
 {
@@ -25,7 +41,7 @@ if (app.Environment.IsDevelopment())
 app.UseAuthorization();
 app.MapControllers();
 
-// Inicialização e Carga de Testes Automática
+// 5. Carga Inicial do Banco de Dados (Seed)
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<DataContext>();

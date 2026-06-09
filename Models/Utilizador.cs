@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 namespace CatBills.Models
 {
@@ -27,6 +28,7 @@ namespace CatBills.Models
         [Column("criado_em")]
         public DateTime CriadoEm { get; set; } = DateTime.UtcNow;
 
+        [JsonIgnore] // Evita loops de serialização no Swagger
         public ICollection<Despesa> Despesas { get; set; } = new List<Despesa>();
     }
 }

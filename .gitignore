@@ -10,3 +10,5 @@ x86/
 *.db
 *.db-shm
 *.db-wal
+gerar-prompt.ps1
+prompt_contexto_ia.txt

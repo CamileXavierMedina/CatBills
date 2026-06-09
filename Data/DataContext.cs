@@ -1,6 +1,5 @@
-﻿using CatBills.Models;
-using Microsoft.EntityFrameworkCore;
-using System.Collections.Generic;
+﻿using Microsoft.EntityFrameworkCore;
+using CatBills.Models;
 using System.Linq;
 
 namespace CatBills.Data
