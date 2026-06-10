@@ -20,7 +20,6 @@ namespace CatBills.DTOs
         [Required]
         public string TipoDespesa { get; set; } = "VARIAVEL";
 
-        public int UtilizadorId { get; set; }
         public int CategoriaId { get; set; }
     }
 }

@@ -19,14 +19,13 @@ namespace CatBills.Controllers
             _context = context;
         }
 
+        // CADASTRAR DESPESA (POST)
         [HttpPost]
         public async Task<IActionResult> Criar([FromBody] CriarDespesaDto dto)
         {
-            var utilizadorExiste = await _context.Utilizadores.AnyAsync(u => u.Id == dto.UtilizadorId);
             var categoriaExiste = await _context.Categorias.AnyAsync(c => c.Id == dto.CategoriaId);
-
-            if (!utilizadorExiste || !categoriaExiste)
-                return BadRequest("Utilizador ou Categoria informados não existem no sistema.");
+            if (!categoriaExiste)
+                return BadRequest("A Categoria informada não existe no sistema.");
 
             var despesa = new Despesa
             {
@@ -36,7 +35,6 @@ namespace CatBills.Controllers
                 Pago = dto.Pago,
                 MeioPagamento = dto.MeioPagamento.ToUpper(),
                 TipoDespesa = dto.TipoDespesa.ToUpper(),
-                UtilizadorId = dto.UtilizadorId,
                 CategoriaId = dto.CategoriaId
             };
 
@@ -46,11 +44,11 @@ namespace CatBills.Controllers
             return CreatedAtAction(nameof(ObterPorId), new { id = despesa.Id }, despesa);
         }
 
+        // LISTAR TODAS AS DESPESAS (GET)
         [HttpGet]
         public async Task<IActionResult> ListarTodas()
         {
             var despesas = await _context.Despesas
-                .Include(d => d.Utilizador)
                 .Include(d => d.Categoria)
                 .Select(d => new ExibirDespesaDto
                 {
@@ -61,7 +59,6 @@ namespace CatBills.Controllers
                     Pago = d.Pago,
                     MeioPagamento = d.MeioPagamento,
                     TipoDespesa = d.TipoDespesa,
-                    NomeUtilizador = d.Utilizador != null ? d.Utilizador.Nome : "Desconhecido",
                     NomeCategoria = d.Categoria != null ? d.Categoria.Nome : "Sem Categoria"
                 })
                 .ToListAsync();
@@ -69,11 +66,11 @@ namespace CatBills.Controllers
             return Ok(despesas);
         }
 
+        // OBTER DESPESA POR ID (GET)
         [HttpGet("{id}")]
         public async Task<IActionResult> ObterPorId(int id)
         {
             var despesa = await _context.Despesas
-                .Include(d => d.Utilizador)
                 .Include(d => d.Categoria)
                 .FirstOrDefaultAsync(d => d.Id == id);
 
@@ -88,24 +85,22 @@ namespace CatBills.Controllers
                 Pago = despesa.Pago,
                 MeioPagamento = despesa.MeioPagamento,
                 TipoDespesa = despesa.TipoDespesa,
-                NomeUtilizador = despesa.Utilizador?.Nome ?? "Desconhecido",
                 NomeCategoria = despesa.Categoria?.Nome ?? "Sem Categoria"
             };
 
             return Ok(dto);
         }
 
+        // EDITAR DESPESA (PUT)
         [HttpPut("{id}")]
         public async Task<IActionResult> Editar(int id, [FromBody] CriarDespesaDto dto)
         {
             var despesa = await _context.Despesas.FindAsync(id);
             if (despesa == null) return NotFound("Despesa não encontrada.");
 
-            var utilizadorExiste = await _context.Utilizadores.AnyAsync(u => u.Id == dto.UtilizadorId);
             var categoriaExiste = await _context.Categorias.AnyAsync(c => c.Id == dto.CategoriaId);
-
-            if (!utilizadorExiste || !categoriaExiste)
-                return BadRequest("Utilizador ou Categoria informados são inválidos.");
+            if (!categoriaExiste)
+                return BadRequest("Categoria informada é inválida.");
 
             despesa.Descricao = dto.Descricao;
             despesa.Valor = dto.Valor;
@@ -113,13 +108,13 @@ namespace CatBills.Controllers
             despesa.Pago = dto.Pago;
             despesa.MeioPagamento = dto.MeioPagamento.ToUpper();
             despesa.TipoDespesa = dto.TipoDespesa.ToUpper();
-            despesa.UtilizadorId = dto.UtilizadorId;
             despesa.CategoriaId = dto.CategoriaId;
 
             await _context.SaveChangesAsync();
             return NoContent();
         }
 
+        // EXCLUIR DESPESA (DELETE)
         [HttpDelete("{id}")]
         public async Task<IActionResult> Excluir(int id)
         {

@@ -11,7 +11,6 @@ namespace CatBills.DTOs
         public bool Pago { get; set; }
         public string MeioPagamento { get; set; } = string.Empty;
         public string TipoDespesa { get; set; } = string.Empty;
-        public string NomeUtilizador { get; set; } = string.Empty;
         public string NomeCategoria { get; set; } = string.Empty;
     }
 }

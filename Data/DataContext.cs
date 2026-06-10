@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using CatBills.Models;
 using System.Linq;
+using System;
 
 namespace CatBills.Data
 {
@@ -8,9 +9,9 @@ namespace CatBills.Data
     {
         public DataContext(DbContextOptions<DataContext> options) : base(options) { }
 
-        public DbSet<Utilizador> Utilizadores { get; set; } = null!;
         public DbSet<CategoriaDespesa> Categorias { get; set; } = null!;
         public DbSet<Despesa> Despesas { get; set; } = null!;
+        public DbSet<Receita> Receitas { get; set; } = null!;
     }
 
     public static class DbSeeder
@@ -28,14 +29,12 @@ namespace CatBills.Data
                 context.SaveChanges();
             }
 
-            if (!context.Utilizadores.Any())
+            if (!context.Receitas.Any())
             {
-                context.Utilizadores.Add(new Utilizador
-                {
-                    Nome = "Estudante Programador",
-                    Email = "estudante@ipt.pt",
-                    SalarioMensal = 2500.00m
-                });
+                context.Receitas.AddRange(
+                    new Receita { Descricao = "Salário Principal", Valor = 2500.00m, Data = DateTime.UtcNow, Origem = "Empresa" },
+                    new Receita { Descricao = "Trabalho Freelance C#", Valor = 450.00m, Data = DateTime.UtcNow.AddDays(-2), Origem = "Freelance" }
+                );
                 context.SaveChanges();
             }
         }

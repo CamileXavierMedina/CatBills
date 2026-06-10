@@ -7,11 +7,26 @@ using CatBills.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// 1. Configuração do Banco de Dados SQLite
+// ============================================================================
+// CONFIGURAÇÃO DOS SERVIÇOS (DI & INFRAESTRUTURA)
+// ============================================================================
+
+// 1. Configuração do SQLite local unificado
 builder.Services.AddDbContext<DataContext>(options =>
     options.UseSqlite("Data Source=catbills.db"));
 
-// 2. Controladores e Prevenção de Loops Infinitos de Referência JSON
+// 2. CONFIGURAÇÃO DE SEGURANÇA (CORS): Libera o acesso para o seu HTML em qualquer outra porta
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("LiberarGeral", policy =>
+    {
+        policy.AllowAnyOrigin()
+              .AllowAnyMethod()
+              .AllowAnyHeader();
+    });
+});
+
+// 3. Controladores e Prevenção de Loops de Referência JSON
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
@@ -20,7 +35,7 @@ builder.Services.AddControllers()
 
 builder.Services.AddEndpointsApiExplorer();
 
-// 3. Documentação Swagger com Resolução de Conflitos de Rotas
+// 4. Documentação Swagger com Resolução de Conflito de Rotas
 builder.Services.AddSwaggerGen(c =>
 {
     c.ResolveConflictingActions(apiDescriptions => apiDescriptions.First());
@@ -28,7 +43,12 @@ builder.Services.AddSwaggerGen(c =>
 
 var app = builder.Build();
 
-// 4. Ativar o carregamento automático do index.html na pasta wwwroot
+// ============================================================================
+// CONFIGURAÇÃO DO PIPELINE DE EXECUÇÃO (MIDDLEWARES)
+// ============================================================================
+
+app.UseCors("LiberarGeral");
+
 app.UseDefaultFiles();
 app.UseStaticFiles();
 
@@ -49,4 +69,5 @@ using (var scope = app.Services.CreateScope())
     DbSeeder.Seed(context);
 }
 
+// INICIALIZAÇÃO NATIVA: O Visual Studio define a porta dinamicamente ao clicar no Play
 app.Run();

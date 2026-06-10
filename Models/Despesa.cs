@@ -27,18 +27,11 @@ namespace CatBills.Models
 
         [Required]
         [Column("meio_pagamento")]
-        public string MeioPagamento { get; set; } = "DEBITO";
+        public string MeioPagamento { get; set; } = "DEBITO"; // CREDITO, DEBITO, PIX
 
         [Required]
         [Column("tipo_despesa")]
-        public string TipoDespesa { get; set; } = "VARIAVEL";
-
-        [Column("utilizador_id")]
-        public int UtilizadorId { get; set; }
-
-        [JsonIgnore]
-        [ForeignKey("UtilizadorId")]
-        public Utilizador? Utilizador { get; set; }
+        public string TipoDespesa { get; set; } = "VARIAVEL"; // FIXA, VARIAVEL
 
         [Column("categoria_id")]
         public int CategoriaId { get; set; }
