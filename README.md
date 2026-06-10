@@ -1,93 +1,186 @@
-# 🐱 CatBills - Gerenciador de Finanças Pessoais
+# CatBills - Gestão de Finanças Pessoais
 
-O CatBills é uma API RESTful para controle e monitoramento de finanças pessoais, desenvolvida em C# com ASP.NET Core e Entity Framework Core. O projeto conta com um banco de dados local SQLite e uma interface de usuário (Frontend) responsiva, moderna e intuitiva integrada diretamente na aplicação.
+O **CatBills** é um ecossistema completo e inteligente para controlo e monitorização de finanças pessoais. O projeto é composto por uma API RESTful robusta desenvolvida em **C# com ASP.NET Core** (com banco de dados SQLite local) e uma interface de utilizador premium, moderna e responsiva (**Single Page Application**) integrada diretamente no servidor de ficheiros estáticos da aplicação.
 
-## 🚀 Funcionalidades Principais
+Esta versão foi completamente otimizada para o seminário académico, focando em dois CRUDs de tabelas físicas totalmente independentes e integrados a uma base de dados física local relacional.
 
-- Gestão de Utilizadores: Cadastro de perfis com definição de salário mensal bruto.
+---
 
-- Controle de Despesas: Lançamento de gastos com descrição, valor, data de vencimento e status de pagamento (Pago/Pendente).
+## Design & Identidade Visual
 
-- Categorização Dinâmica: Separação de custos por categorias visuais (Habitação, Alimentação, Transportes, Lazer, etc.) com cores personalizadas.
+A interface do CatBills foi projetada com foco na experiência de utilizador (**UX**) e legibilidade em ambientes escuros (**Dark Mode**):
 
-- Painel de Indicadores (Dashboard):
-  - Gráficos interativos de distribuição de despesas por categoria.
-  - Cálculo automático de saldo restante com base no salário e gastos do mês.
-  - Alertas visuais para contas próximas do vencimento.
+* **Fundo Deep Black:** estética de alto contraste (`#09090B`) para reduzir o cansaço visual.
+* **Destaques em Roxo Vibrante:** cor da marca (`#8B5CF6`) utilizada nas ações principais e navegação.
+* **Ganhos em Verde Vibrante:** receitas e saldos positivos recebem destaque visual (`#10B981`).
+* **Barra Lateral Estática:** menu lateral fixo enquanto a área principal realiza a rolagem independentemente.
 
-## 🛠️ Tecnologias Utilizadas
+---
+
+## Funcionalidades Principais
+
+### CRUD 1 — Gestão de Receitas (Entradas)
+
+* Cadastro de receitas
+* Listagem de receitas
+* Edição de receitas
+* Exclusão de receitas
+
+**Campos:**
+
+* Descrição
+* Valor
+* Data de recebimento
+* Origem
+
+### CRUD 2 — Gestão de Despesas (Saídas)
+
+* Cadastro de despesas
+* Listagem de despesas
+* Edição de despesas
+* Exclusão de despesas
+
+**Campos:**
+
+* Descrição
+* Valor
+* Data de vencimento
+* Meio de pagamento (PIX, Crédito ou Débito)
+* Tipo de despesa (Fixa ou Variável)
+* Associação física com categorias
+
+### Dashboard Financeiro
+
+* Saldo calculado dinamicamente em tempo real
+* Receitas menos despesas
+* Gráfico de progresso orçamentário
+* Distribuição percentual por categorias
+* Classificação de despesas fixas e variáveis
+
+**Categorias suportadas:**
+
+* Habitação
+* Alimentação
+* Transportes
+* Lazer
+
+---
+
+## Tecnologias Utilizadas
 
 ### Backend (API)
 
-- **Linguagem:** C# (.NET 8.0 / 9.0)
-- **Framework:** ASP.NET Core Web API
-- **Persistência de Dados:** Entity Framework Core
-- **Banco de Dados:** SQLite (banco em arquivo local)
-- **Padrão de Projeto:** DTOs (Data Transfer Objects) para segurança e validação de dados.
+| Tecnologia            | Utilização                     |
+| --------------------- | ------------------------------ |
+| C# (.NET 8.0)         | Linguagem principal            |
+| ASP.NET Core Web API  | API RESTful                    |
+| Entity Framework Core | Persistência de dados          |
+| SQLite                | Banco de dados físico local    |
+| DTO Pattern           | Validação e segurança de dados |
 
 ### Frontend (Interface)
 
-- **Estrutura:** HTML5 de página única (SPA) integrado na pasta `wwwroot`.
-- **Estilização:** Tailwind CSS (via CDN) com tema Dark Mode personalizado (Roxo e Preto).
-- **Gráficos:** Chart.js para renderização de dados financeiros em tempo real.
-- **Ícones:** Lucide Icons.
+| Tecnologia   | Utilização              |
+| ------------ | ----------------------- |
+| HTML5        | Estrutura               |
+| JavaScript   | Comunicação com API     |
+| Fetch API    | Requisições assíncronas |
+| Tailwind CSS | Estilização             |
+| Lucide Icons | Ícones                  |
 
-## 📂 Estrutura do Projeto
+---
+
+## Estrutura do Repositório
 
 ```text
 CatBills/
 │
-├── Controllers/         # Endpoints da API (Despesas e Utilizadores)
-├── Data/                # Contexto do Banco de Dados (DataContext) e Seeder de dados iniciais
-├── DTOs/                # Objetos de Transferência de Dados (Validação de Entrada/Saída)
-├── Models/              # Classes de Entidade (Despesa, Utilizador, CategoriaDespesa)
-├── wwwroot/             # Ficheiros estáticos do Frontend
-│   └── index.html       # Painel de controle do usuário (HTML/CSS/JS)
-├── CatBills.csproj      # Ficheiro de configuração do projeto .NET
-└── Program.cs           # Ponto de entrada da aplicação e configuração de serviços
+├── Controllers/
+│   ├── DespesasController.cs
+│   └── ReceitasController.cs
+│
+├── Data/
+│   └── DataContext.cs
+│
+├── DTOs/
+│   ├── CriarDespesaDto.cs
+│   ├── CriarReceitaDto.cs
+│   ├── ExibirDespesaDto.cs
+│   └── ExibirReceitaDto.cs
+│
+├── Models/
+│   ├── CategoriaDespesa.cs
+│   ├── Despesa.cs
+│   └── Receita.cs
+│
+├── wwwroot/
+│   └── index.html
+│
+├── CatBills.csproj
+└── Program.cs
 ```
 
-## 🔧 Como Executar o Projeto Localmente
+---
+
+## Como Executar o Projeto Localmente
 
 ### Pré-requisitos
 
-- .NET SDK instalado.
-- Visual Studio 2022 ou VS Code.
+* .NET SDK 8.0
+* Visual Studio 2022 ou VS Code
 
-### Passo a Passo
-
-#### Clonar o Repositório
+### 1. Clonar o Repositório
 
 ```bash
 git clone https://github.com/CamileXavierMedina/CatBills.git
+
 cd CatBills
 ```
 
-#### Instalar as Dependências (Entity Framework & SQLite)
+### 2. Instalar Dependências do SQLite
 
-Abra o terminal do projeto ou o Console do Gerenciador de Pacotes no Visual Studio e execute:
+Abra:
+
+```text
+Ferramentas
+→ Gerenciador de Pacotes NuGet
+→ Console do Gerenciador de Pacotes
+```
+
+Execute:
 
 ```powershell
-Install-Package Microsoft.EntityFrameworkCore.Sqlite
-Install-Package Microsoft.EntityFrameworkCore.Design
+Install-Package Microsoft.EntityFrameworkCore.Sqlite -Version 8.0.12
+
+Install-Package Microsoft.EntityFrameworkCore.Design -Version 8.0.12
 ```
 
-#### Executar a Aplicação
+### 3. Compilar e Executar
 
-Pressione **F5** no Visual Studio ou execute o comando abaixo no terminal:
+Pressione:
 
-```bash
-dotnet run
+```text
+F5
 ```
 
-#### Acessar a Interface
+ou clique no botão **Play** do Visual Studio.
 
-A API irá iniciar o servidor local e abrirá automaticamente o navegador na interface do usuário através do endereço configurado (ex: `http://localhost:5000` ou `https://localhost:5001`).
+---
 
-O banco de dados SQLite (`catbills.db`) e os dados iniciais de teste serão criados de forma **100% automática** no primeiro início.
+## Inicialização Automática
 
-## 📝 Licença
+Ao executar o projeto:
 
-Este projeto é de uso livre para fins de estudo e desenvolvimento de portfólio.
+* O servidor ASP.NET Core será iniciado localmente.
+* O arquivo físico `catbills.db` será criado automaticamente.
+* As tabelas serão geradas automaticamente.
+* O Seeder inicial irá popular dados de teste.
+* O painel financeiro abrirá diretamente no navegador.
 
-Desenvolvido por **Camile Xavier Medina**.
+---
+
+## Licença
+
+Desenvolvido por **Camile Xavier Medina** para fins de estudo académico, extensão universitária e portfólio de desenvolvimento de sistemas Web.
+
+Uso livre para fins educacionais.
